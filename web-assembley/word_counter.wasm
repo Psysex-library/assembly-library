@@ -1,0 +1,39 @@
+(module
+  (import "env" "log" (func $log (param i32)))
+  (import "env" "getString" (func $getString (param i32) (result i32)))
+  (import "env" "setString" (func $setString (param i32)))
+
+  (export "processWords" (func $processWords))
+
+  (func $processWords (param $ptr i32)
+    (local $len i32)
+    (local $i i32)
+    (local $wordCount i32)
+    (local $inWord i32)
+    (set_local $len (call $getString (get_local $ptr)))
+    (set_local $i (i32.const 0))
+    (set_local $wordCount (i32.const 0))
+    (set_local $inWord (i32.const 0))
+
+    (loop $loop
+      (br_if $loop (i32.ge_s (get_local $i) (get_local $len)))
+      (local $char (i32.load8_u (i32.add (get_local $ptr) (get_local $i))))
+      (if (i32.eq (get_local $char) (i32.const 32))  ;; Leerzeichen
+        (if (get_local $inWord)
+          (set_local $wordCount (i32.add (get_local $wordCount) (i32.const 1)))
+          (set_local $inWord (i32.const 0))
+        )
+      )
+      (else
+        (set_local $inWord (i32.const 1))
+      )
+      (set_local $i (i32.add (get_local $i) (i32.const 1)))
+      (br $loop)
+    )
+    (if (get_local $inWord)
+      (set_local $wordCount (i32.add (get_local $wordCount) (i32.const 1)))
+    )
+    (call $log (get_local $wordCount))
+    (call $setString (get_local $ptr))
+  )
+)
